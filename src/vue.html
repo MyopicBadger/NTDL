@@ -50,11 +50,14 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr v-for="entry in queue">
+								<tr v-for="entry in queue" v-bind:key="entry.url">
 									<td>{{entry.url}}</td>
 									<td>{{entry.filename}}</td>
 									<td>{{entry.status}}</td>
-									<td></td>
+									<td>
+										<a href='#' v-on:click="(removeValue(entry))"><trash-2-icon size="1.5x" class="custom-class" title="Delete"></trash-2-icon></a>
+										<a href='#' v-on:click="(retryDownload(entry))"><rotate-ccw-icon size="1.5x" class="custom-class" title="Retry"></rotate-ccw-icon></a>
+									</td>
 								</tr>
 							</tbody>
 						</table>

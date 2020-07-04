@@ -1,3 +1,4 @@
+const downloaderMod = require('./downloader');
 const http = require('http');
 const fs = require('fs');
 const path = require('path')
@@ -9,68 +10,45 @@ const app = express();
 const hostname = '127.0.0.1';
 const port = 3000;
 
-var subject;
-
-var downloader = {
-	options: {},
-	init: function (options = {}) {
-		options = this.options;
-	},
-	add: function (url) {
-
-	},
-	start: function (url) {
-		const download = spawn('youtube-dl', ["https://www.youtube.com/watch?v=tDqjrqu4ZL0"]);
-		download.stdout.on('data', (data) => {
-			console.log(`stdout: ${data}`);
-		});
-		download.stderr.on('data', (data) => {
-			console.error(`stderr: ${data}`);
-		});
-		download.on('close', (code) => {
-			console.log(`child process exited with code ${code}`);
-		});
-		return download;
-	}
-}
-
+var downloader = downloaderMod.module;
+var saveChangedSinceLastRead = true
 
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
 function checkInit() {
-	if (!subject) {
-		subject = {};
+	/*if (!downloader) {
+		downloader = {};
 	}
-	if (!subject.queue) {
-		subject.queue = [];
-	}
-	if (!subject.historic) {
-		subject.historic = [];
-	}
+	if (!downloader.queue) {
+		downloader.queue = [];
+	}*/
 }
 
 function loadFiles() {
 	checkInit();
 	console.log("Load Files...")
 	fs.readFile('save.json', (err, data) => {
-		console.log("Load Files Complete")
+		console.log("Load Files Complete");
 		if (err) {
 			console.log("Unable to load save.json");
-			subject = { queue: [] }
 		} else {
-			subject = JSON.parse(data);
+			var rawData = JSON.parse(data);
+			//console.log(rawData)
+			downloader.queue = rawData.queue;
 		}
-		console.log("Loaded", subject.historic.length, "records");
+		console.log("Loaded", downloader.queue.length, "records");
+		saveChangedSinceLastRead = false;
 	});
 }
 
 function saveFiles() {
-	let data = JSON.stringify(subject, null, '\t');
+	let data = JSON.stringify(downloader, null, '\t');
 
 	fs.writeFile('save.json', data, (err) => {
 		if (err) throw err;
 		console.log('Data written to file');
+		saveChangedSinceLastRead = true
 	});
 }
 
@@ -85,27 +63,55 @@ app.get('/favicon.ico', function (req, res) {
 app.get('/queue.json', function (req, res) {
 	checkInit()
 	res.type('application/json')
-	res.send(JSON.stringify(subject.queue));
-	loadFiles();
-})
+	res.send(JSON.stringify(downloader.queue));
+	if(saveChangedSinceLastRead) {
+		loadFiles();
 
-// app.post('/historyByDate.json', function (req, res) {
-//   console.log("Got start date:", req.body.startDate)
-//   res.type('application/json')
-//   res.send(JSON.stringify(subject.historic.filter(function (element) {
-//     return moment(element.x).isAfter(req.body.startDate)
-//   })));
-//   loadFiles();
-// })
+	}
+})
 
 app.post('/newEntry', function (req, res, next) {
 	checkInit();
 	console.log(req.body)
 	if (req.body.date && req.body.url) {
-		subject.queue.push({ queued: req.body.date, url: req.body.url, status: 'Queued' });
-		console.log(`Current queue size is ${subject.queue.length}`)
+		downloader.add({ queued: req.body.date, url: req.body.url, status: 'Queued', summary: ""});
+		console.log(`Current queue size is ${downloader.queue.length}`)
 		saveFiles();
-		res.json({ status: 'success' })
+		res.json({ status: 'success', queue: downloader.queue})
+	} else {
+		res.json({
+			status: 'error',
+			error: 'Insufficient data provided',
+			errorDetails: req.body
+		})
+	}
+})
+
+app.post('/remEntry', function (req, res, next) {
+	checkInit();
+	console.log(req.body)
+	if (req.body.url) {
+		downloader.queue = downloader.remove(req.body)
+		console.log(`Current queue size is ${downloader.queue.length}`)
+		saveFiles();
+		res.json({ status: 'success', queue: downloader.queue})
+	} else {
+		res.json({
+			status: 'error',
+			error: 'Insufficient data provided',
+			errorDetails: req.body
+		})
+	}
+})
+
+app.post('/retryEntry', function (req, res, next) {
+	checkInit();
+	console.log(req.body)
+	if (req.body.url) {
+		downloader.requeueByUrl(req.body.url)
+		console.log(`Current queue size is ${downloader.queue.length}`)
+		saveFiles();
+		res.json({ status: 'success', queue: downloader.queue})
 	} else {
 		res.json({
 			status: 'error',

@@ -3,10 +3,13 @@ import Vue from 'vue'
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './style.css';
-import 'chart.js';
-import feather from 'feather-icons'
+//import feather from 'feather-icons'
+import { Trash2Icon, RotateCcwIcon } from 'vue-feather-icons'
 
 var app = new Vue({
+    components: {
+        Trash2Icon, RotateCcwIcon
+    },
     el: '#mainpage',
     data: {
         queue: [],
@@ -46,60 +49,62 @@ var app = new Vue({
                         console.log('Looks like there was a problem. Status Code: ' + response.status);
                         return;
                     }
+                    this.newEntryValue = '';
                     this.loadSave()
                 }).catch(function (err) {
                     console.log('Fetch Error :-S', err);
                 });
-        }
-    },
-    computed: {
-        historicMoments: function () {
-            return this.historic.map(a => {
-                return { t: moment(a.x).toDate(), y: a.y };
-            })
         },
-        chartConfig: function () {
-            return {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Weight',
-                        fill: false,
-                        data: this.historicMoments,
-                    }]
+        removeValue: function (entry) {
+            console.log("Fired", this.newEntryValue)
+            var endpoint = './remEntry'
+            var fetchConfig = {
+                method: 'POST', // or 'PUT'
+                headers: {
+                    'Content-Type': 'application/json',
                 },
-                options: {
-                    scales: {
-                        xAxes: [{
-                            type: 'time',
-                            time: {
-                                unit: this.chartUnit,
-                                suggestedMin: moment('2017-03-15'),
-                                suggestedMax: moment(),
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                suggestedMin: 100,
-                                suggestedMax: 120
-                            }
-                        }]
-                    }
-                }
+                body: JSON.stringify({ date: moment().format("YYYY-MM-DD"), url: entry.url }),
             }
+            fetch(endpoint, fetchConfig).then(
+                (response) => {
+                    if (response.status !== 200) {
+                        console.log('Looks like there was a problem. Status Code: ' + response.status);
+                        return;
+                    }
+                    this.loadSave()
+                }).catch(function (err) {
+                    console.log('Fetch Error :-S', err);
+                });
+        },
+        retryDownload: function (entry) {
+            console.log("Fired", this.newEntryValue)
+            var endpoint = './retryEntry'
+            var fetchConfig = {
+                method: 'POST', // or 'PUT'
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ date: moment().format("YYYY-MM-DD"), url: entry.url }),
+            }
+            fetch(endpoint, fetchConfig).then(
+                (response) => {
+                    if (response.status !== 200) {
+                        console.log('Looks like there was a problem. Status Code: ' + response.status);
+                        return;
+                    }
+                    this.loadSave()
+                }).catch(function (err) {
+                    console.log('Fetch Error :-S', err);
+                });
+        },
+        pollForUpdate: function () {
+            this.loadSave();
+            setTimeout(this.pollForUpdate, 1000)
         }
     },
-    watch: {
-        chartConfig: function () {
-            console.log("Redrawing")
-            this.myChart.destroy()
-            this.createChart('myChart', this.chartConfig);
-        }
-    },
-
     mounted: function () {
-        feather.replace()
-        this.loadSave();
-        //this.createChart('myChart', this.chartConfig);
+        //feather.replace();
+        //this.loadSave();
+        this.pollForUpdate();
     }
 });
