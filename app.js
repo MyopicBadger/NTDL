@@ -17,12 +17,6 @@ app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
 function checkInit() {
-	/*if (!downloader) {
-		downloader = {};
-	}
-	if (!downloader.queue) {
-		downloader.queue = [];
-	}*/
 	if(saveChangedSinceLastRead) {
 		loadFiles();
 	}
@@ -131,6 +125,5 @@ app.use(express.static('dist'))
 
 
 var server = app.listen(port, hostname, () => {
-	//loadFiles()
 	console.log(`Server running at http://${hostname}:${port}/`);
 });
