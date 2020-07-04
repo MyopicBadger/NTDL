@@ -30,14 +30,10 @@ var downloader = {
 	},
 
 	remove: function (item) {
-		console.log(`removing ${item.url}`)
 		if (this.alreadyQueued(item)) {
-			console.log("already in queue");
 			var thisItem = this.queue.findIndex(currentItemByUrl => currentItemByUrl.url == item.url);
 			if (this.queue[thisItem].status != "Starting..." && this.queue[thisItem].status != "In Progress...") {
-				console.log(`previous length ${this.queue.length}`)
 				this.queue = this.queue.filter(currentItemByUrl => currentItemByUrl.url !== this.queue[thisItem].url)
-				console.log(`new length ${this.queue.length}`)
 			} else {
 				console.log("Tried to remove active download -- no way to do this sensibly yet")
 			}
