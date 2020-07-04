@@ -1,9 +1,9 @@
 # Project specific files
+video
 save.json
 
 # Logs
 logs
-video
 *.log
 npm-debug.log*
 yarn-debug.log*
