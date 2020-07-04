@@ -23,10 +23,12 @@ function checkInit() {
 	if (!downloader.queue) {
 		downloader.queue = [];
 	}*/
+	if(saveChangedSinceLastRead) {
+		loadFiles();
+	}
 }
 
 function loadFiles() {
-	checkInit();
 	console.log("Load Files...")
 	fs.readFile('save.json', (err, data) => {
 		console.log("Load Files Complete");
@@ -61,20 +63,23 @@ app.get('/favicon.ico', function (req, res) {
 })
 
 app.get('/queue.json', function (req, res) {
-	checkInit()
-	res.type('application/json')
-	res.send(JSON.stringify(downloader.queue));
 	if(saveChangedSinceLastRead) {
 		loadFiles();
-
 	}
+	res.type('application/json')
+	var fileQueue = downloader.queue.map(function(queueItem) {
+		queueItem.output = ''
+		return queueItem;
+	});
+	res.send(JSON.stringify(fileQueue));
+	
 })
 
 app.post('/newEntry', function (req, res, next) {
 	checkInit();
 	console.log(req.body)
 	if (req.body.date && req.body.url) {
-		downloader.add({ queued: req.body.date, url: req.body.url, status: 'Queued', summary: ""});
+		downloader.add({ queued: req.body.date, url: req.body.url, filename: req.body.url, status: 'Queued', summary: ""});
 		console.log(`Current queue size is ${downloader.queue.length}`)
 		saveFiles();
 		res.json({ status: 'success', queue: downloader.queue})
@@ -91,7 +96,7 @@ app.post('/remEntry', function (req, res, next) {
 	checkInit();
 	console.log(req.body)
 	if (req.body.url) {
-		downloader.queue = downloader.remove(req.body)
+		downloader.remove(req.body)
 		console.log(`Current queue size is ${downloader.queue.length}`)
 		saveFiles();
 		res.json({ status: 'success', queue: downloader.queue})
