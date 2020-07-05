@@ -40,6 +40,11 @@ var downloader = {
 		}
 	},
 
+	removeComplete: function () {
+		this.queue = this.queue.filter(item => item.status != "Done");
+	},
+
+
 	requeueByUrl: function (url) {
 		this.requeue(this.queue.findIndex(item => item.url == url));
 	},

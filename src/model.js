@@ -55,6 +55,27 @@ var app = new Vue({
                     console.log('Fetch Error :-S', err);
                 });
         },
+        removeComplete: function () {
+            console.log("Fired", this.newEntryValue)
+            var endpoint = './remAll'
+            var fetchConfig = {
+                method: 'POST', // or 'PUT'
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ date: moment().format("YYYY-MM-DD")}),
+            }
+            fetch(endpoint, fetchConfig).then(
+                (response) => {
+                    if (response.status !== 200) {
+                        console.log('Looks like there was a problem. Status Code: ' + response.status);
+                        return;
+                    }
+                    this.loadSave()
+                }).catch(function (err) {
+                    console.log('Fetch Error :-S', err);
+                });
+        },
         removeValue: function (entry) {
             console.log("Fired", this.newEntryValue)
             var endpoint = './remEntry'

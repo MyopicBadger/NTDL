@@ -20,4 +20,3 @@ It more or less works, albeit with nothing like feature parity with the python v
 * Imgur downloads
 * Video playback
 * Download progress information
-* Clear Completed

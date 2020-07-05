@@ -17,7 +17,7 @@ app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
 function checkInit() {
-	if(saveChangedSinceLastRead) {
+	if (saveChangedSinceLastRead) {
 		loadFiles();
 	}
 }
@@ -57,26 +57,26 @@ app.get('/favicon.ico', function (req, res) {
 })
 
 app.get('/queue.json', function (req, res) {
-	if(saveChangedSinceLastRead) {
+	if (saveChangedSinceLastRead) {
 		loadFiles();
 	}
 	res.type('application/json')
-	var fileQueue = downloader.queue.map(function(queueItem) {
+	var fileQueue = downloader.queue.map(function (queueItem) {
 		queueItem.output = ''
 		return queueItem;
 	});
 	res.send(JSON.stringify(fileQueue));
-	
+
 })
 
 app.post('/newEntry', function (req, res, next) {
 	checkInit();
 	console.log(req.body)
 	if (req.body.date && req.body.url) {
-		downloader.add({ queued: req.body.date, url: req.body.url, filename: req.body.url, status: 'Queued', summary: ""});
+		downloader.add({ queued: req.body.date, url: req.body.url, filename: req.body.url, status: 'Queued', summary: "" });
 		console.log(`Current queue size is ${downloader.queue.length}`)
 		saveFiles();
-		res.json({ status: 'success', queue: downloader.queue})
+		res.json({ status: 'success', queue: downloader.queue })
 	} else {
 		res.json({
 			status: 'error',
@@ -93,7 +93,7 @@ app.post('/remEntry', function (req, res, next) {
 		downloader.remove(req.body)
 		console.log(`Current queue size is ${downloader.queue.length}`)
 		saveFiles();
-		res.json({ status: 'success', queue: downloader.queue})
+		res.json({ status: 'success', queue: downloader.queue })
 	} else {
 		res.json({
 			status: 'error',
@@ -103,6 +103,14 @@ app.post('/remEntry', function (req, res, next) {
 	}
 })
 
+app.post('/remAll', function (req, res, next) {
+	checkInit();
+	downloader.removeComplete()
+	console.log(`Current queue size is ${downloader.queue.length}`)
+	saveFiles();
+	res.json({ status: 'success', queue: downloader.queue })
+})
+
 app.post('/retryEntry', function (req, res, next) {
 	checkInit();
 	console.log(req.body)
@@ -110,7 +118,7 @@ app.post('/retryEntry', function (req, res, next) {
 		downloader.requeueByUrl(req.body.url)
 		console.log(`Current queue size is ${downloader.queue.length}`)
 		saveFiles();
-		res.json({ status: 'success', queue: downloader.queue})
+		res.json({ status: 'success', queue: downloader.queue })
 	} else {
 		res.json({
 			status: 'error',
