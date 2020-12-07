@@ -51,7 +51,7 @@
 							<tbody>
 								<tr v-for="entry in queue" v-bind:key="entry.url">
 									<td>{{entry.filename}}</td>
-									<td>{{entry.status}}</td>
+									<td v-bind:title=entry.errorMessage>{{entry.status}}</td>
 									<td>
 										<a href='#' v-on:click="(removeValue(entry))" title="Delete"><trash-2-icon size="1.5x" class="custom-class"></trash-2-icon></a>
 										<a href='#' v-on:click="(retryDownload(entry))" title="Retry"><rotate-ccw-icon size="1.5x" class="custom-class"></rotate-ccw-icon></a>
