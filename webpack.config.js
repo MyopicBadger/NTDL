@@ -35,10 +35,12 @@ module.exports = {
 		],
 	},
 	plugins: [
-		new CopyPlugin([
-			{ from: 'src/vue.html', to: 'vue.html' },
-			{ from: 'src/favicon.ico', to: 'favicon.ico' },
-		]),
+		new CopyPlugin({
+			patterns: [
+				{ from: 'src/vue.html', to: 'vue.html' },
+				{ from: 'src/favicon.ico', to: 'favicon.ico' },
+			]
+		}),
 		function () {
 			this.plugin('done', function (stats) {
 				setTimeout(
