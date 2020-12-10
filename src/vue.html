@@ -28,9 +28,10 @@
 					<div class="sidebar-sticky">
 						<ul class="nav flex-column">
 							<li class="nav-item">
-								<a class="nav-link active" href="#">
+								<a class="nav-link active" href="#" v-on:click="(removeComplete())">
 									<span data-feather="home"></span>
-									Dashboard <span class="sr-only">(current)</span>
+									<trash-2-icon size="1.5x" class="custom-class"></trash-2-icon>
+									Clear Completed <span class="sr-only">(current)</span>
 								</a>
 							</li>
 						</ul>
@@ -45,7 +46,9 @@
 								<tr>
 									<th>Filename</th>
 									<th>Status</th>
-									<th>Actions <a href='#' v-on:click="(removeComplete())" title="Clear All"><trash-2-icon size="1.5x" class="custom-class"></trash-2-icon></a></th>
+									<th>Actions <a href='#' v-on:click="(removeComplete())" title="Clear All">
+											<trash-2-icon size="1.5x" class="custom-class"></trash-2-icon>
+										</a></th>
 								</tr>
 							</thead>
 							<tbody>
@@ -53,8 +56,12 @@
 									<td>{{entry.filename}}</td>
 									<td v-bind:title=entry.errorMessage>{{entry.status}}</td>
 									<td>
-										<a href='#' v-on:click="(removeValue(entry))" title="Delete"><trash-2-icon size="1.5x" class="custom-class"></trash-2-icon></a>
-										<a href='#' v-on:click="(retryDownload(entry))" title="Retry"><rotate-ccw-icon size="1.5x" class="custom-class"></rotate-ccw-icon></a>
+										<a href='#' v-on:click="(removeValue(entry))" title="Delete">
+											<trash-2-icon size="1.5x" class="custom-class"></trash-2-icon>
+										</a>
+										<a href='#' v-on:click="(retryDownload(entry))" title="Retry">
+											<rotate-ccw-icon size="1.5x" class="custom-class"></rotate-ccw-icon>
+										</a>
 									</td>
 								</tr>
 							</tbody>
