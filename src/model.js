@@ -4,11 +4,11 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './style.css';
 //import feather from 'feather-icons'
-import { Trash2Icon, RotateCcwIcon } from 'vue-feather-icons'
+import { Trash2Icon, RotateCcwIcon, XOctagonIcon } from 'vue-feather-icons'
 
 var app = new Vue({
     components: {
-        Trash2Icon, RotateCcwIcon
+        Trash2Icon, RotateCcwIcon, XOctagonIcon
     },
     el: '#mainpage',
     data: {
@@ -109,6 +109,27 @@ var app = new Vue({
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ date: moment().format("YYYY-MM-DD"), url: entry.url }),
+            }
+            fetch(endpoint, fetchConfig).then(
+                (response) => {
+                    if (response.status !== 200) {
+                        console.log('Looks like there was a problem. Status Code: ' + response.status);
+                        return;
+                    }
+                    this.loadSave()
+                }).catch(function (err) {
+                    console.log('Fetch Error :-S', err);
+                });
+        },
+        sendShutdown: function () {
+            console.log("Fired", this.newEntryValue)
+            var endpoint = './shutdown'
+            var fetchConfig = {
+                method: 'POST', // or 'PUT'
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ date: moment().format("YYYY-MM-DD") }),
             }
             fetch(endpoint, fetchConfig).then(
                 (response) => {

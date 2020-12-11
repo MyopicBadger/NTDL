@@ -4,7 +4,7 @@ var downloader = {
 	pool: 0,
 	maxPool: 3,
 	queue: [],
-	defaultDownloadOptions: ['--print-json'],
+	defaultDownloadOptions: [],
 	shellOptions: { cwd: 'video/' },
 
 	alreadyQueued: function (newItem) {
@@ -56,19 +56,41 @@ var downloader = {
 		this.beginNext();
 	},
 
+	parseDataLine: function (dataString, index) {
+		dataString = dataString.replace("\r", "").replace("\n", "").trim();
+		this.queue[index].status = "In Progress...";
+		// parse progress message
+		if (dataString.includes('[download]') && dataString.includes("\%")) {
+			this.queue[index].progressString = dataString.replace("[download] ", "");
+			var progressArray = this.queue[index].progressString.trim().split(/\s+/);
+			this.queue[index].progressPercent = progressArray[0];
+			this.queue[index].fullSize = progressArray[2];
+			this.queue[index].progressSpeed = progressArray[4];
+			this.queue[index].eta = progressArray[6];
+		}
+		// parse in-progress filename 
+		if (dataString.includes('[download] Destination: ')) {
+			this.queue[index].filename = dataString.replace('[download] Destination: ', '');
+		}
+		// parse final filename
+		if (dataString.includes('[ffmpeg] Merging formats into "')) {
+			this.queue[index].filename = dataString.replace('[ffmpeg] Merging formats into "', '').replace('"', '');
+		}
+
+		// parse the "you've already downloaded this" message
+		if (dataString.includes('[download] ') && dataString.includes("has already been downloaded and merged")) {
+			this.queue[index].filename = this.queue[index].filename = dataString.replace('[download] ', '').replace('has already been downloaded and merged', '');
+		}
+		this.queue[index].title = this.queue[index].filename;
+	},
+
 	start: function (options, index) {
 		var download = spawn('youtube-dl', options, this.shellOptions);
 		this.queue[index].status = "Starting..."
 
 		download.stdout.on('data', (data) => {
-			//console.log(`stdout: ${data}`);
-			this.queue[index].status = "In Progress..."
-			this.queue[index].output = JSON.parse(data.toString());
-			if (this.queue[index].output._filename && this.queue[index].filename == this.queue[index].url) {
-				this.queue[index].filename = this.queue[index].output._filename
-			}
-			this.queue[index].title = this.queue[index].output.title || this.queue[index].output.fulltitle;
-
+			var dataLines = data.toString().split(/\r|\n/);
+			dataLines.forEach(element => this.parseDataLine(element, index));
 		});
 
 		download.stderr.on('data', (data) => {
@@ -79,7 +101,7 @@ var downloader = {
 
 		download.on('close', (code) => {
 			console.log(`child process exited with code ${code}`)
-			if(code == 0) {
+			if (code == 0) {
 				this.queue[index].status = "Done"
 			} else {
 				this.queue[index].status = `Error: ${code}`

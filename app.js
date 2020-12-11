@@ -128,6 +128,20 @@ app.post('/retryEntry', function (req, res, next) {
 	}
 })
 
+app.post('/shutdown', function (req, res, next) {
+	checkInit();
+	console.log("Received Shutdown command");
+	let data = JSON.stringify(downloader, null, '\t');
+
+	fs.writeFile('save.json', data, (err) => {
+		if (err) throw err;
+		console.log('Data written to file');
+		saveChangedSinceLastRead = true
+		process.kill(process.pid, 'SIGTERM')
+	});
+	
+})
+
 // Make the content directory visible for the server
 app.use(express.static('dist'))
 
@@ -135,3 +149,9 @@ app.use(express.static('dist'))
 var server = app.listen(port, hostname, () => {
 	console.log(`Server running at http://${hostname}:${port}/`);
 });
+
+process.on('SIGTERM', () => {
+	server.close(() => {
+		console.log('Process terminated')
+	})
+})
