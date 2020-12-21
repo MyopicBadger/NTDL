@@ -4,8 +4,18 @@ var downloader = {
 	pool: 0,
 	maxPool: 3,
 	queue: [],
-	defaultDownloadOptions: [],
 	shellOptions: { cwd: 'video/' },
+	config: {
+		youtubeCommand: 'youtube-dl',
+		imgurCommand: 'python imgur_downloader.py'
+	},
+
+	configure: function(newConfig) {
+		this.config = newConfig;
+		this.shellOptions = {cwd: newConfig.downloadDirectory};
+		maxPool = newConfig.maxWorkerProcesses;
+		return newConfig;
+	},
 
 	alreadyQueued: function (newItem) {
 		return newItem.url && this.queue.some(item => item.url == newItem.url);
@@ -24,7 +34,7 @@ var downloader = {
 			console.log(`Looking for new job, currently ${queuedItems.length} of ${this.queue.length}`)
 			if (queuedItems.length > 0) {
 				var nextQueueItem = queuedItems[0];
-				this.start([nextQueueItem.url].concat(this.defaultDownloadOptions), this.queue.indexOf(nextQueueItem));
+				this.start([nextQueueItem.url], this.queue.indexOf(nextQueueItem));
 			}
 		}
 	},
@@ -85,16 +95,28 @@ var downloader = {
 	},
 
 	start: function (options, index) {
-		var download = spawn('youtube-dl', options, this.shellOptions);
+		let download;
+		console.log("options", options)
+		if(options[0].includes('imgur.com')) {
+			options[1] = options[0];
+			options[2] = this.config.downloadDirectory;
+			options[0] =  this.config.imgurCommand;
+
+			download = spawn(this.config.pythonCommand, options, this.shellOptions);
+		} else {
+			download = spawn(this.config.youtubeCommand, options, this.shellOptions);
+		}
+		
 		this.queue[index].status = "Starting..."
 
 		download.stdout.on('data', (data) => {
+			console.error(`stdout: ${data}`);
 			var dataLines = data.toString().split(/\r|\n/);
 			dataLines.forEach(element => this.parseDataLine(element, index));
 		});
 
 		download.stderr.on('data', (data) => {
-			//console.error(`stderr: ${data}`);
+			console.error(`stderr: ${data}`);
 			this.queue[index].errorMessage = data.toString();
 			this.queue[index].status = 'Error'
 		});

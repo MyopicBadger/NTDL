@@ -10,11 +10,44 @@ const app = express();
 const hostname = '127.0.0.1';
 const port = 3000;
 
+const defaultConfig = {
+	loaded: true,
+	pythonCommand: 'python',
+	youtubeCommand: 'youtube-dl',
+	imgurCommand: '../imgur_downloader.py',
+	downloadDirectory: 'video',
+	stateFile: 'save.json',
+	maxWorkerProcesses: 3
+}
 var downloader = downloaderMod.module;
 var saveChangedSinceLastRead = true
+var config = { loaded: false};
+
+
 
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
+
+
+function loadConfig() {
+	if (!config.loaded) {
+		try {
+			let data = fs.readFileSync('config.json', 'utf8')
+			config = JSON.parse(data);
+			console.log(data)
+		} catch (err) {
+			config = defaultConfig;
+			let data = JSON.stringify(config, null, '\t');
+
+			fs.writeFile('config.json', data, (err) => {
+				if (err) throw err;
+				console.log('Config written to file');
+			});
+		}
+		downloader.configure(config);
+	}
+}
+loadConfig();
 
 function checkInit() {
 	if (saveChangedSinceLastRead) {
@@ -24,10 +57,10 @@ function checkInit() {
 
 function loadFiles() {
 	console.log("Load Files...")
-	fs.readFile('save.json', (err, data) => {
+	fs.readFile(config.stateFile, (err, data) => {
 		console.log("Load Files Complete");
 		if (err) {
-			console.log("Unable to load save.json");
+			console.log("Unable to load "+ config.stateFile);
 		} else {
 			var rawData = JSON.parse(data);
 			//console.log(rawData)
@@ -41,9 +74,9 @@ function loadFiles() {
 function saveFiles() {
 	let data = JSON.stringify(downloader, null, '\t');
 
-	fs.writeFile('save.json', data, (err) => {
+	fs.writeFile(config.stateFile, data, (err) => {
 		if (err) throw err;
-		console.log('Data written to file');
+		console.log('State written to '+ config.stateFile);
 		saveChangedSinceLastRead = true
 	});
 }
@@ -139,7 +172,7 @@ app.post('/shutdown', function (req, res, next) {
 		saveChangedSinceLastRead = true
 		process.kill(process.pid, 'SIGTERM')
 	});
-	
+
 })
 
 // Make the content directory visible for the server

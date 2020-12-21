@@ -31,7 +31,8 @@
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build": "webpack",
 		"rerun": "webpack & node app.js",
-		"run": "node app.js"
+		"run": "node app.js",
+		"dev": "rm config.json & rm save.json & node app.js"
 	},
 	"private": true,
 	"author": "",

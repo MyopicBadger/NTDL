@@ -1,6 +1,7 @@
 # Project specific files
 video
 save.json
+config.json
 
 # Logs
 logs
