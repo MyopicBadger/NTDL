@@ -91,7 +91,7 @@ class ImgurDownloader:
 
         # Check the URL is actually imgur:
         match = re.match(
-            "(https?)://(www\.)?(i\.|m\.)?imgur\.com/(a/|gallery/|r/)?/?(\w*)/?(\w*)(#[0-9]+)?(.\w*)?",  # NOQA
+            "(https?)://(www\.)?(i\.|m\.)?imgur\.com/(a/|gallery/|t/|r/)?/?(\w*)/?(\w*)(#[0-9]+)?(.\w*)?",  # NOQA
             imgur_url,
         )
         if not match:
@@ -168,6 +168,7 @@ class ImgurDownloader:
     @staticmethod
     def get_all_format_url(album_url):
         """get `all` format url from album url."""
+        album_url = re.sub('/t/.*/', '/a/', album_url)
         parsed_url = urlparse(album_url)
         if not parsed_url.path.startswith(("/a/", "/gallery/")):
             return album_url
