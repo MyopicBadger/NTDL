@@ -4,11 +4,11 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './style.css';
 //import feather from 'feather-icons'
-import { Trash2Icon, RotateCcwIcon, XOctagonIcon } from 'vue-feather-icons'
+import { Trash2Icon, RotateCcwIcon, XOctagonIcon, DownloadIcon, YoutubeIcon} from 'vue-feather-icons'
 
 var app = new Vue({
     components: {
-        Trash2Icon, RotateCcwIcon, XOctagonIcon
+        Trash2Icon, RotateCcwIcon, XOctagonIcon, DownloadIcon, YoutubeIcon
     },
     el: '#mainpage',
     data: {
