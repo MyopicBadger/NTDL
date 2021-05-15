@@ -5,7 +5,7 @@
 	"main": "app.js",
 	"dependencies": {
 		"bootstrap": "^4.4.1",
-		"chart.js": "^2.9.3",
+		"chart.js": "^2.9.4",
 		"express": "^4.17.1",
 		"feather-icons": "^4.26.0",
 		"font-awesome": "^4.7.0",
